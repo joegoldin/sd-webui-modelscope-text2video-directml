@@ -9,7 +9,6 @@ from PIL import Image
 from pathlib import Path
 import numpy as np
 import torch
-import torch_directml
 from tqdm import tqdm
 from base64 import b64encode
 from types import SimpleNamespace
@@ -76,9 +75,6 @@ def process(skip_video_creation, ffmpeg_location, ffmpeg_crf, ffmpeg_preset, fps
 
         device=devices.get_optimal_device()
         print('device',device)
-
-        device=torch_directml.device()
-        print('torch directml device',device)
 
         if do_img2img:
 
