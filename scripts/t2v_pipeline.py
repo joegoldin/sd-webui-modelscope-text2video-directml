@@ -23,6 +23,7 @@ __all__ = ['TextToVideoSynthesis']
 from scripts.t2v_model import torch_gc
 from scripts.clip_hardcode import FrozenOpenCLIPEmbedder
 
+
 class TextToVideoSynthesis():
     r"""
     task for text to video synthesis.
@@ -212,7 +213,7 @@ class TextToVideoSynthesis():
         self.clip_encoder.to(self.device)
         self.clip_encoder.device = self.device
         c, uc = self.preprocess(prompt, n_prompt, steps)
-        self.clip_encoder.to(dml)
+        self.clip_encoder.to(self.device)
         torch_gc()
 
         # synthesis
@@ -250,7 +251,7 @@ class TextToVideoSynthesis():
 
                 self.last_tensor = x0
                 self.last_tensor.cpu()
-                self.sd_model.to(dml)
+                self.sd_model.to(self.device)
                 torch_gc()
                 scale_factor = 0.18215
                 bs_vd = x0.shape[0]
@@ -265,7 +266,7 @@ class TextToVideoSynthesis():
                     chunks = torch.chunk(x0, chunks=max_frames, dim=2)
                     # Apply the autoencoder to each chunk
                     output_chunks = []
-                    self.autoencoder.to(dml)
+                    self.autoencoder.to(self.device)
                     print("STARTING VAE ON CPU")
                     x = 0
                     for chunk in chunks:
@@ -318,11 +319,11 @@ class TextToVideoSynthesis():
         vd_out = vd_out.type(torch.float32).cpu()
 
         video_path = self.postprocess_video(vd_out)
-        self.clip_encoder.to(dml)
-        self.sd_model.to(dml)
-        self.autoencoder.to(dml)
-        self.autoencoder.encoder.to(dml)
-        self.autoencoder.decoder.to(dml)
+        self.clip_encoder.to(self.device)
+        self.sd_model.to(self.device)
+        self.autoencoder.to(self.device)
+        self.autoencoder.encoder.to(self.device)
+        self.autoencoder.decoder.to(self.device)
 
         # self.autoencoder = None
         # del self.autoencoder
@@ -358,7 +359,7 @@ class TextToVideoSynthesis():
         uc = get_conds_with_caching(prompt_parser.get_learned_conditioning, self.clip_encoder, [n_prompt], steps, cached_uc)
         c = get_conds_with_caching(prompt_parser.get_learned_conditioning, self.clip_encoder, [prompt], steps, cached_c)
         if offload:
-            self.clip_encoder.to(dml)
+            self.clip_encoder.to(self.device)
         return c, uc
 
     def postprocess_video(self, video_data):
