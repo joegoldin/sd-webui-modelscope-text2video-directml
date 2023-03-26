@@ -427,7 +427,7 @@ def sinusoidal_embedding(timesteps, dim):
     x = torch.cat([torch.cos(sinusoid), torch.sin(sinusoid)], dim=1)
     if dim % 2 != 0:
         x = torch.cat([x, torch.zeros_like(x[:, :1])], dim=1)
-    return x
+    return x.float()
 
 
 class CrossAttention(nn.Module):
