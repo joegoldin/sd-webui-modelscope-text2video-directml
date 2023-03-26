@@ -83,7 +83,7 @@ class TextToVideoSynthesis():
         self.sd_model.load_state_dict(
             torch.load(
                 osp.join(self.model_dir, self.config.model["model_args"]["ckpt_unet"]),
-                map_location='cpu' if devices.device.type != 'cuda' else None, # default to cpu when macos, else default behaviour
+                map_location='cpu', # default to cpu when macos, else default behaviour
             ),
             strict=True,
         )
