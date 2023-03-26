@@ -9,6 +9,7 @@ from types import SimpleNamespace
 from typing import Any, Dict, Optional
 
 import torch
+import torch_directml
 import random
 import torch.cuda.amp as amp
 from einops import rearrange
@@ -206,11 +207,12 @@ class TextToVideoSynthesis():
             A generated video (as list of np.arrays).
         """
 
-        self.device = device
+        dml = torch_directml.device()
+        self.device = dml
         self.clip_encoder.to(self.device)
         self.clip_encoder.device = self.device
         c, uc = self.preprocess(prompt, n_prompt, steps)
-        self.clip_encoder.to("cpu")
+        self.clip_encoder.to(dml)
         torch_gc()
 
         # synthesis
@@ -248,7 +250,7 @@ class TextToVideoSynthesis():
 
                 self.last_tensor = x0
                 self.last_tensor.cpu()
-                self.sd_model.to("cpu")
+                self.sd_model.to(dml)
                 torch_gc()
                 scale_factor = 0.18215
                 bs_vd = x0.shape[0]
@@ -263,7 +265,7 @@ class TextToVideoSynthesis():
                     chunks = torch.chunk(x0, chunks=max_frames, dim=2)
                     # Apply the autoencoder to each chunk
                     output_chunks = []
-                    self.autoencoder.to("cpu")
+                    self.autoencoder.to(dml)
                     print("STARTING VAE ON CPU")
                     x = 0
                     for chunk in chunks:
@@ -316,11 +318,11 @@ class TextToVideoSynthesis():
         vd_out = vd_out.type(torch.float32).cpu()
 
         video_path = self.postprocess_video(vd_out)
-        self.clip_encoder.to("cpu")
-        self.sd_model.to("cpu")
-        self.autoencoder.to("cpu")
-        self.autoencoder.encoder.to("cpu")
-        self.autoencoder.decoder.to("cpu")
+        self.clip_encoder.to(dml)
+        self.sd_model.to(dml)
+        self.autoencoder.to(dml)
+        self.autoencoder.encoder.to(dml)
+        self.autoencoder.decoder.to(dml)
 
         # self.autoencoder = None
         # del self.autoencoder
@@ -356,7 +358,7 @@ class TextToVideoSynthesis():
         uc = get_conds_with_caching(prompt_parser.get_learned_conditioning, self.clip_encoder, [n_prompt], steps, cached_uc)
         c = get_conds_with_caching(prompt_parser.get_learned_conditioning, self.clip_encoder, [prompt], steps, cached_c)
         if offload:
-            self.clip_encoder.to('cpu')
+            self.clip_encoder.to(dml)
         return c, uc
 
     def postprocess_video(self, video_data):
