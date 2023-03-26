@@ -412,7 +412,7 @@ class UNetSD(nn.Module):
                                          time_rel_pos_bias, focus_present_mask,
                                          video_mask, reference)
         else:
-            x = module(x.float())
+            x = module(x).half()
         return x
 
 
@@ -427,7 +427,7 @@ def sinusoidal_embedding(timesteps, dim):
     x = torch.cat([torch.cos(sinusoid), torch.sin(sinusoid)], dim=1)
     if dim % 2 != 0:
         x = torch.cat([x, torch.zeros_like(x[:, :1])], dim=1)
-    return x.float()
+    return x.half()
 
 
 class CrossAttention(nn.Module):
