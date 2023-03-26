@@ -412,7 +412,7 @@ class UNetSD(nn.Module):
                                          time_rel_pos_bias, focus_present_mask,
                                          video_mask, reference)
         else:
-            x = module(x)
+            x = module(x.half())
         return x
 
 
